@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -8,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.VisualBasic.ApplicationServices;
 
 namespace winforms_chat.ChatForm
 {
@@ -16,6 +19,11 @@ namespace winforms_chat.ChatForm
         public ChatboxInfo chatbox_info;
         public OpenFileDialog fileDialog = new OpenFileDialog();
         public string initialdirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+        public Kernel kernel;
+        public IChatCompletionService chat;
+        public ChatHistory history;
+
 
         public Chatbox(ChatboxInfo _chatbox_info)
         {
@@ -135,6 +143,10 @@ namespace winforms_chat.ChatForm
 
                 */
 
+                //history.AddUserMessage(userQ);
+                //var result = await chat.GetChatMessageContentsAsync(history);
+                //Console.WriteLine(result[^1].Content);
+
                 if (chatModel != null)
                 {
                     AddMessage(chatModel);
@@ -144,6 +156,20 @@ namespace winforms_chat.ChatForm
                 {
                     AddMessage(textModel);
                     chatTextbox.Text = string.Empty;
+
+                    history.AddUserMessage(textModel.Body);
+                    var result = await chat.GetChatMessageContentsAsync(history);
+                    var resultContent = result[^1].Content;
+
+                    var responseTextModel = new TextChatModel()
+                    {
+                        Author = "Azure OpenAI",
+                        Body = resultContent,
+                        Inbound = true,
+                        Read = false,
+                        Time = DateTime.Now
+                    };
+                    AddMessage(responseTextModel);
                 }
             }
             catch (Exception exc)

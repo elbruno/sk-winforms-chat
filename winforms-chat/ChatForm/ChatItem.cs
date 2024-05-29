@@ -30,7 +30,7 @@ namespace winforms_chat.ChatForm
                 chatModel = new TextChatModel()
                 {
                     Author = "System",
-                    Body = "No chat messages were found regarding this client.",
+                    Body = "Welcome to Semantic Kernel Chat!",
                     Inbound = true,
                     Time = DateTime.Now
                 };

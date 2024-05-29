@@ -1,4 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System;
@@ -25,7 +28,11 @@ namespace winforms_chat
                 config["AZURE_OPENAI_MODEL"],
                 config["AZURE_OPENAI_ENDPOINT"],
                 config["AZURE_OPENAI_APIKEY"]);
-            kernel = builder.Build();
+
+            builder.Services.AddLogging(
+                b => b.AddConsole().SetMinimumLevel(LogLevel.Trace)
+                );
+
             chat = kernel.GetRequiredService<IChatCompletionService>();
             history = new ChatHistory();
 

@@ -32,6 +32,7 @@ namespace winforms_chat
             builder.Services.AddLogging(
                 b => b.AddConsole().SetMinimumLevel(LogLevel.Trace)
                 );
+            kernel = builder.Build();
 
             chat = kernel.GetRequiredService<IChatCompletionService>();
             history = new ChatHistory();

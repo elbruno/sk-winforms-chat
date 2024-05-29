@@ -14,8 +14,8 @@ using Microsoft.VisualBasic.ApplicationServices;
 
 namespace winforms_chat.ChatForm
 {
-	public partial class Chatbox : UserControl
-	{
+    public partial class Chatbox : UserControl
+    {
         public ChatboxInfo chatbox_info;
         public OpenFileDialog fileDialog = new OpenFileDialog();
         public string initialdirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
@@ -255,10 +255,14 @@ namespace winforms_chat.ChatForm
             attachButton.Width = 35;
         }
 
-        //Inspired from Slack, you can also press Shift + Enter to enter text.
+        //Inspired from Slack, you can press Enter or Shift + Enter to enter text.
         async void OnEnter(object sender, KeyEventArgs e)
         {
             if (e.Shift && e.KeyValue == 13)
+            {
+                SendMessage(this, null);
+            }
+            else if (e.KeyValue == 13)
             {
                 SendMessage(this, null);
             }

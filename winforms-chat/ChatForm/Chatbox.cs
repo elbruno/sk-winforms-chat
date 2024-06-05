@@ -11,6 +11,15 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.VisualBasic.ApplicationServices;
+using Microsoft.SemanticKernel.Memory;
+using System.Collections;
+using StackExchange.Redis;
+
+#pragma warning disable SKEXP0001
+#pragma warning disable SKEXP0010
+#pragma warning disable SKEXP0020
+#pragma warning disable SKEXP0027
+#pragma warning disable SKEXP0050
 
 namespace winforms_chat.ChatForm
 {
@@ -20,9 +29,16 @@ namespace winforms_chat.ChatForm
         public OpenFileDialog fileDialog = new OpenFileDialog();
         public string initialdirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
+        // Semantic Kernel objects
         public Kernel kernel;
         public IChatCompletionService chat;
         public ChatHistory history;
+
+        // redis cache elements
+        public SemanticTextMemory memory;
+        public string collectionName;
+        public string _userName = "Bruno";
+        public RedisConnection _redisConnection;
 
 
         public Chatbox(ChatboxInfo _chatbox_info)
@@ -143,10 +159,6 @@ namespace winforms_chat.ChatForm
 
                 */
 
-                //history.AddUserMessage(userQ);
-                //var result = await chat.GetChatMessageContentsAsync(history);
-                //Console.WriteLine(result[^1].Content);
-
                 if (chatModel != null)
                 {
                     AddMessage(chatModel);
@@ -156,15 +168,39 @@ namespace winforms_chat.ChatForm
                 {
                     AddMessage(textModel);
                     chatTextbox.Text = string.Empty;
-
                     history.AddUserMessage(textModel.Body);
-                    var result = await chat.GetChatMessageContentsAsync(history);
-                    var resultContent = result[^1].Content;
+
+                    var author = "";
+                    string question = textModel.Body;
+                    var response = "";
+
+                    await foreach (var memResult in memory.SearchAsync(_userName + "_chathistory", question, limit: 1))
+                    {
+                        if (memResult.Relevance > 0.9)
+                        {
+                            response = memResult.Metadata.Text;
+                        }
+                    }
+
+                    if (!String.IsNullOrEmpty(response))
+                    {
+                        author = "redis cache";
+                        history.AddUserMessage(response);
+
+                    }
+                    else
+                    {
+                        author = "Azure OpenAI";
+                        var result = await chat.GetChatMessageContentsAsync(history);
+                        response = result[^1].Content;
+                        await memory.SaveInformationAsync(_userName + "_chathistory", question, Guid.NewGuid().ToString(), additionalMetadata: response);
+                    }
+
 
                     var responseTextModel = new TextChatModel()
                     {
-                        Author = "Azure OpenAI",
-                        Body = resultContent,
+                        Author = author, //"Azure OpenAI",
+                        Body = response,
                         Inbound = true,
                         Read = false,
                         Time = DateTime.Now

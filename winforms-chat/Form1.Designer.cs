@@ -39,7 +39,7 @@ namespace winforms_chat
             Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             Name = "Form1";
             Text = "Semantic Kernel - Winforms Chat";
-            Load += Form1_Load;
+            Load += Form1_LoadAsync;
             ResumeLayout(false);
         }
 
